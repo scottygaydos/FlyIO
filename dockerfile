@@ -1,4 +1,4 @@
- Use a base image with Java
+# Use a base image with Java
 FROM eclipse-temurin:17-jdk-alpine
 
 # Copy the built jar file into the image

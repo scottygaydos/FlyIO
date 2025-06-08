@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-
 @Controller
 class ExerciseController(
     val exerciseTabReader: ExerciseTabReader,

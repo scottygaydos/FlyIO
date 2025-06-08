@@ -22,7 +22,7 @@ public class SpringBeans {
     public GoogleSheetClient googleSheetClient() {
         var googleAuthJsonEnv = googleAuthJson;
         if (googleAuthJsonEnv.equalsIgnoreCase("file")) {
-            googleAuthJsonEnv = Env.Companion.getGOOGLE_AUTH_JSON();
+            googleAuthJsonEnv = JavaEnv.GOOGLE_AUTH_JSON;
         }
 
         return new GoogleSheetClient(
