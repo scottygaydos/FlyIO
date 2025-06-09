@@ -16,9 +16,16 @@
     let workoutHasStartedInputFromHtmlQueryParam = /*[[${started}]]*/ false;
 
     //programmatic (hard coded) inputs
-    let workoutMinutes = 0;
-    let workoutSeconds = 30;
-    let prepSeconds = 8;
+    const workoutMinutesInput = 0;
+    const workoutSecondsInput = 7;
+    const prepSecondsInput = 5;
+
+    playAudio("stop");
+
+    //these are managed by the script
+    let workoutMinutes = workoutMinutesInput;
+    let workoutSeconds = workoutSecondsInput;
+    let prepSeconds = prepSecondsInput;
 
     let workoutHasNotStartedState = {state: false, text: "Start"};
     let workoutHasStartedState = {state: true, text: "Stop"};
@@ -32,13 +39,21 @@
     function toggleWorkoutStartStop() {
         if (workoutState.state === false) {
             workoutState = workoutHasStartedState;
+            beep("high"); //beep when Start button is clicked for us to start
         } else {
             workoutState = workoutHasNotStartedState;
         }
         document.getElementById("startButton").innerHTML = workoutState.text;
     }
 
-    function beep(vol=100, freq=520, duration=200){
+    function beep(lowOrHighString="low"){
+        let low = 520
+        let high = 750
+        let freq = low
+        if (lowOrHighString !== "low") {
+            freq = high
+        }
+        let duration = 200
         let a = new AudioContext()
         let v=a.createOscillator()
         let u=a.createGain()
@@ -46,23 +61,32 @@
         v.frequency.value=freq
         v.type="square"
         u.connect(a.destination)
-        u.gain.value=vol*0.01
+        //u.gain.value=vol*0.01
         v.start(a.currentTime)
         v.stop(a.currentTime+duration*0.001)
     }
 
-    function handleWorkoutTimer(workoutMinutes, workoutSeconds) {
-        let resultMinutes = workoutMinutes;
-        let resultSeconds = workoutSeconds;
+    function playAudio(word) {
+        let audio = new Audio(`../${word}.wav`);
+        audio.play();
+    }
+
+    function handleWorkoutTimer(workoutMinutesParam, workoutSecondsParam) {
+        if (workoutSecondsInput === workoutSecondsParam && workoutMinutesInput === workoutMinutesParam) {
+            playAudio("begin");
+        }
+        let resultMinutes = workoutMinutesParam;
+        let resultSeconds = workoutSecondsParam;
         let resultDone = false;
-        let display = workoutMinutes + ":" + workoutSeconds;
-        if (workoutMinutes <= 0) {
-            display = workoutSeconds;
+        let display = workoutMinutesParam + ":" + workoutSecondsParam;
+        if (workoutMinutesParam <= 0) {
+            display = workoutSecondsParam;
         }
         document.getElementById("exerciseTimer").innerHTML = display;
-        if (workoutSeconds > 0) {
+        if (workoutSecondsParam > 0 || workoutMinutesParam > 0) {
             if (resultSeconds > 0 && resultSeconds <= 3 && resultMinutes === 0) {
-                beep();
+                //beep("low");
+                playAudioNumber(workoutSecondsParam);
             }
             resultSeconds--;
             if(resultSeconds === 0 && resultMinutes > 0) {
@@ -76,17 +100,25 @@
         return {resultMinutes, resultSeconds, resultDone};
     }
 
+    function playAudioNumber(n) {
+        if (n === 1) {
+            playAudio("one");
+        } else if (n === 2) {
+            playAudio("two");
+        } else {
+            playAudio("three");
+        }
+    }
+
     function handlePrepTimer(prepSeconds) {
         let result = prepSeconds;
         document.getElementById("prepTimer").innerHTML = "Starting in "+prepSeconds+"...";
         if (result > 0) {
             if (result > 0 && result <= 3) {
-                beep();
+                //beep("low");
+                playAudioNumber(prepSeconds);
             }
             result--;
-        } else {
-            document.getElementById("prepTimer").innerHTML = "Go!" ;
-            //auto-transition to prepare page here
         }
         return result;
     }
@@ -98,6 +130,7 @@
         setInterval(function() {
             if (workoutState.state === true) {
                 if (prepSeconds === 0) {
+                    document.getElementById("prepTimer").innerHTML = "Go!" ;
                     let workoutTimerResponse = handleWorkoutTimer(workoutMinutes, workoutSeconds)
                     workoutMinutes = workoutTimerResponse.resultMinutes;
                     workoutSeconds = workoutTimerResponse.resultSeconds;
@@ -120,10 +153,10 @@
 <div class="container my-2" align="center">
 
     <h2 th:text="${nextExercise.name}">Next Exercise Name</h2>
-    <img th:src="${nextExercise.image}" width="600" height="600" alt="exercise">
+    <img src = "https://i.pinimg.com/originals/e3/68/12/e36812ffa8170849b3fd854ae760294a.gif" th:src="${nextExercise.image}" width="350" height="350" alt="exercise">
     <h2><span id="prepTimer">Prep Timer</span></h2>
     <h2><span id="exerciseTimer">Workout Timer</span></h2>
-    <button id="startButton" onclick="toggleWorkoutStartStop()" style="height:170px;width:270px">Start</button>
+    <button id="startButton" onclick="toggleWorkoutStartStop()" style="min-height:100px;min-width:200px">Start</button>
 
 </div>
 
