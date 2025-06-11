@@ -17,10 +17,12 @@
 
     //programmatic (hard coded) inputs
     const workoutMinutesInput = 0;
-    const workoutSecondsInput = 7;
-    const prepSecondsInput = 5;
+    const workoutSecondsInput = 30;
+    const prepSecondsInput = 10;
 
-    playAudio("stop");
+    if (workoutHasStartedInputFromHtmlQueryParam) {
+        playAudio("stop");
+    }
 
     //these are managed by the script
     let workoutMinutes = workoutMinutesInput;
@@ -67,7 +69,7 @@
     }
 
     function playAudio(word) {
-        let audio = new Audio(`../${word}.wav`);
+        let audio = new Audio(`${word}.wav`);
         audio.play();
     }
 
