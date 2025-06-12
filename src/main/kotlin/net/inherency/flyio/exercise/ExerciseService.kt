@@ -1,19 +1,28 @@
 package net.inherency.flyio.exercise
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class ExerciseService(
     private val exerciseTabReader: ExerciseTabReader) {
 
-    private var workoutInstances: ConcurrentHashMap<String, List<ExerciseTabRow>> =  ConcurrentHashMap()
+    private final var log: Logger = LoggerFactory.getLogger(ExerciseService::class.java)
+
+    private var workoutInstances: LinkedHashMap<String, List<ExerciseTabRow>> = LinkedHashMap()
 
     fun getNextExerciseForWorkoutInstance(): Pair<String, ExerciseTabRow> {
+        if (workoutInstances.size > 10) {
+            val oldestKey = workoutInstances.firstEntry().key
+            log.info("Removing oldest workout instance={}", oldestKey)
+            workoutInstances.remove(oldestKey)
+        }
         val newWorkoutInstanceId = UUID.randomUUID().toString()
         val exercises = exerciseTabReader.findAllSortedCacheable()
         workoutInstances[newWorkoutInstanceId] = exercises
+
         return Pair(newWorkoutInstanceId, exercises[0])
     }
 
