@@ -8,17 +8,13 @@ import org.springframework.stereotype.Service
 class ExerciseTabReader(
     private val googleSheetClient: GoogleSheetClient): GoogleSheetReadRepository<ExerciseTabRow> {
 
-    //use very simple, local caching.
-    private var rows: List<ExerciseTabRow> = emptyList()
-
+    /**
+     * Find all exercises from google sheet. Don't use caching; we rarely read, and we want latest data.
+     */
     override fun findAllSortedCacheable(): List<ExerciseTabRow> {
-        if (rows.isEmpty()) {
-            rows = googleSheetClient.reportNonHeaderRowsFromTab(
-                tabName(),
-                this::mapRowsFromSheetToObjects
-            )
-        }
-        return rows
+        return googleSheetClient.reportNonHeaderRowsFromTab(
+            tabName(),
+            this::mapRowsFromSheetToObjects)
     }
 
     override fun mapRowsFromSheetToObjects(row: List<String>): ExerciseTabRow {
