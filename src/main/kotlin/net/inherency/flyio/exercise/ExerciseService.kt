@@ -1,5 +1,6 @@
 package net.inherency.flyio.exercise
 
+import net.inherency.google.base.GoogleSheetReadRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -7,20 +8,24 @@ import java.util.UUID
 
 @Service
 class ExerciseService(
-    private val exerciseTabReader: ExerciseTabReader) {
+    tabReaders: List<GoogleSheetReadRepository<ExerciseTabRow>>) {
 
-    private final var log: Logger = LoggerFactory.getLogger(ExerciseService::class.java)
+    private final val log: Logger = LoggerFactory.getLogger(ExerciseService::class.java)
+    private final val readersByTabName: Map<String, GoogleSheetReadRepository<ExerciseTabRow>> = tabReaders.associateBy {  it.tabName() }
+    private final var workoutInstances: LinkedHashMap<String, List<ExerciseTabRow>> = LinkedHashMap()
 
-    private var workoutInstances: LinkedHashMap<String, List<ExerciseTabRow>> = LinkedHashMap()
-
-    fun getNextExerciseForWorkoutInstance(): Pair<String, ExerciseTabRow> {
+    fun getNextExerciseForWorkoutInstance(tabName: String): Pair<String, ExerciseTabRow> {
         if (workoutInstances.size > 10) {
             val oldestKey = workoutInstances.firstEntry().key
             log.info("Removing oldest workout instance={}", oldestKey)
             workoutInstances.remove(oldestKey)
         }
         val newWorkoutInstanceId = UUID.randomUUID().toString()
-        val exercises = exerciseTabReader.findAllSortedCacheable()
+        val tabReader = readersByTabName[tabName]
+        if (tabReader == null) {
+            throw IllegalArgumentException("No tab named $tabName")
+        }
+        val exercises = tabReader.findAllSortedCacheable()
         workoutInstances[newWorkoutInstanceId] = exercises
 
         return Pair(newWorkoutInstanceId, exercises[0])
@@ -43,5 +48,4 @@ class ExerciseService(
             Pair(workoutInstanceId, workoutInstance[indexOfCurrentExercise+1])
         }
     }
-
 }

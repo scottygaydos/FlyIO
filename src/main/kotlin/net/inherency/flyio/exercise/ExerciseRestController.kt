@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("exercise")
 class ExerciseRestController(
-    val exerciseTabReader: ExerciseTabReader) {
+    val fifteenMinuteFullBodyTabReader: FifteenMinuteFullBodyTabReader) {
 
     @GetMapping("/list")
     fun listExercises(): List<String> {
-        return exerciseTabReader.findAllSortedCacheable().map { it.name }
+        return fifteenMinuteFullBodyTabReader.findAllSortedCacheable().map { it.name }
     }
 
 }
